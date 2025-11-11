@@ -16,7 +16,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 const JSEARCH_PLACEHOLDER = "abdab7afefmsh7a689eed899d741p153425jsne4e416b97f36";
 // IMPORTANT: Replace with your actual JSearch API key from RapidAPI if needed.
 const JSEARCH_API_KEY = process.env.JSEARCH_API_KEY || "abdab7afefmsh7a689eed899d741p153425jsne4e416b97f36";
-export const isJsearchConfigured = JSEARCH_API_KEY !== "abdab7afefmsh7a689eed899d741p153425jsne4e416b97f36";
+export const isJsearchConfigured = JSEARCH_API_KEY !== JSEARCH_PLACEHOLDER;
 
 
 const analysisSchema = {
