@@ -92,7 +92,7 @@ const Results: React.FC = () => {
         return <div className="text-center py-10"><h2>No resume data available.</h2></div>;
     }
 
-    const scoreColor = resume.score > 85 ? '#10B981' : resume.score > 60 ? '#F59E0B' : '#EF4444';
+    const scoreColor = resume.score > 95 ? '#10B981' : resume.score > 60 ? '#F59E0B' : '#EF4444';
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
