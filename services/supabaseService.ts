@@ -212,6 +212,26 @@ export const getResumesForUser = async (userId: string): Promise<Resume[]> => {
 };
 
 /**
+ * Counts the number of resumes analyzed by a specific user.
+ * @param userId The ID of the user.
+ * @returns The total count of resumes.
+ */
+export const getResumeCount = async (userId: string): Promise<number> => {
+    try {
+        const { count, error } = await supabase
+            .from('resumes')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', userId);
+        
+        if (error) throw error;
+        return count || 0;
+    } catch (error) {
+        console.error('Error counting resumes:', error);
+        return 0;
+    }
+};
+
+/**
  * Fetches a single resume analysis and all its related data by ID.
  * @param resumeId The ID of the resume.
  * @returns The complete resume data or null if not found or on error.

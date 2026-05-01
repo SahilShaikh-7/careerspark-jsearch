@@ -5,7 +5,7 @@ import { FileUp, Loader, AlertTriangle, CheckCircle, Crown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
 import { analyzeResume, findMatchingJobs, isGroqConfigured } from '../services/apiService';
-import { saveResumeData, uploadResumeFile } from '../services/supabaseService';
+import { saveResumeData, uploadResumeFile, getResumeCount } from '../services/supabaseService';
 
 const Upload: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
@@ -55,6 +55,15 @@ const Upload: React.FC = () => {
         setError(null);
 
         try {
+            // Check resume limit for standard users
+            if (!isPro) {
+                setProgress({ stage: 'Checking subscription limits...', percentage: 5 });
+                const count = await getResumeCount(user.id);
+                if (count >= 7) {
+                    throw new Error("You have reached the limit of 7 resumes for the Standard plan. Please upgrade to Pro for unlimited analyses.");
+                }
+            }
+
             setProgress({ stage: 'Uploading file securely...', percentage: 10 });
             const fileUrl = await uploadResumeFile(file, user.id);
             if (!fileUrl) throw new Error("Failed to upload your resume file.");
