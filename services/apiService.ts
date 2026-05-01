@@ -131,7 +131,7 @@ Rules:
 5. Return ONLY the JSON array, no other text`;
 
     const response = await groq.chat.completions.create({
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       messages: [
         {
           role: 'system',
@@ -210,7 +210,7 @@ Write a compelling, concise cover letter (250-350 words) that:
 Return ONLY the cover letter text, no JSON formatting.`;
 
     const response = await groq.chat.completions.create({
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       messages: [
         {
           role: 'system',
