@@ -29,7 +29,7 @@ const AssessmentRadarChart: React.FC<AssessmentRadarChartProps> = ({ resume }) =
     const tickColor = isDarkMode ? "#9ca3af" : "#4b5563";
 
     return (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
                 <PolarGrid stroke={isDarkMode ? "#374151" : "#e5e7eb"}/>
                 <PolarAngleAxis dataKey="subject" tick={{ fill: tickColor, fontSize: 12 }} />
