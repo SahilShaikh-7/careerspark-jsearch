@@ -115,10 +115,10 @@ Provide the output as a JSON array ONLY, with each job having these fields:
     "company": "<real Indian company or MNC with India office>",
     "location": "<Indian city>",
     "match_percentage": <70-98>,
-    "apply_url": "<Genuine Naukri or Glassdoor search URL for this specific role and company>",
+    "apply_url": "<Genuine Naukri,linkedin or Glassdoor also careers page of companysearch URL for this specific role and company>",
     "description": "<2-3 sentence job description>",
     "salary_range": "<salary in INR LPA format, e.g. '8-12 LPA'>",
-    "experience_required": "<e.g. '2-4 years'>",
+    "experience_required": "<e.g. '0-4 years'>",
     "job_type": "<Full-time|Remote|Hybrid|Contract>"
   }
 ]
@@ -127,7 +127,7 @@ Rules:
 1. Use REAL Indian companies (TCS, Infosys, Wipro, Razorpay, Flipkart, Zomato, PhonePe, Atlassian India, Google India, Microsoft India, Amazon India, Paytm, CRED, Swiggy, etc.)
 2. Use real Indian cities (Bangalore, Mumbai, Hyderabad, Pune, Delhi NCR, Chennai, Gurugram, Noida)
 3. Salary ranges should be realistic for the Indian market based on experience level
-4. IMPORTANT: For "apply_url", construct a GENUINE search link on Naukri or Glassdoor. 
+4. IMPORTANT: For "apply_url", construct a GENUINE search link on Naukri, linkedin or Glassdoor. 
    - Example for Naukri: https://www.naukri.com/<job-title>-jobs-at-<company>?k=<job-title>&l=<location>
    - Example for Glassdoor: https://www.glassdoor.co.in/Job/jobs.htm?sc.keyword=<company>%20<job-title>
 5. Mix the sources (some Naukri, some Glassdoor) to provide variety.
