@@ -1,5 +1,5 @@
 import Groq from 'groq-sdk';
-import { blobToBase64 } from '../utils/helpers';
+import { extractTextFromFile } from '../utils/helpers';
 import { Job } from '../types';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
@@ -23,11 +23,12 @@ export const analyzeResume = async (file: File) => {
   }
 
   try {
-    const base64Data = await blobToBase64(file);
+    const resumeText = await extractTextFromFile(file);
 
-    const prompt = `You are an expert resume analyst and career advisor. Analyze the following resume data (provided as base64 encoded content from a ${file.type} file named "${file.name}").
+    const prompt = `You are an expert resume analyst and career advisor. Analyze the following resume text extracted from a ${file.type} file named "${file.name}".
 
-The base64 content is: ${base64Data.substring(0, 8000)}
+The resume text is:
+${resumeText.substring(0, 15000)}
 
 Based on whatever text you can extract or infer from this resume data, provide your analysis in the following JSON format ONLY (no other text):
 {
@@ -61,7 +62,7 @@ Rules:
         },
       ],
       temperature: 0.3,
-      max_tokens: 4096,
+      max_tokens: 2048,
       response_format: { type: 'json_object' },
     });
 
@@ -130,7 +131,7 @@ Rules:
 5. Return ONLY the JSON array, no other text`;
 
     const response = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'llama3-8b-8192',
       messages: [
         {
           role: 'system',
@@ -209,7 +210,7 @@ Write a compelling, concise cover letter (250-350 words) that:
 Return ONLY the cover letter text, no JSON formatting.`;
 
     const response = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'llama3-8b-8192',
       messages: [
         {
           role: 'system',

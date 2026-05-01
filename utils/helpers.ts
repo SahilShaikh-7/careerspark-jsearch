@@ -1,19 +1,33 @@
 
 import { Resume } from '../types';
 
-export const blobToBase64 = (blob: Blob): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result.split(',')[1]);
-      } else {
-        reject(new Error('Failed to convert blob to base64'));
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure the worker for pdfjs-dist using a CDN to avoid Vite build issues
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
+export const extractTextFromFile = async (file: File): Promise<string> => {
+  try {
+    if (file.type === 'application/pdf') {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        fullText += pageText + ' \n';
       }
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+      return fullText;
+    } else {
+      // For basic txt files or other fallback (like docx if not parsed perfectly)
+      return await file.text();
+    }
+  } catch (error) {
+    console.error("Error extracting text from file:", error);
+    // Fallback to basic text reading
+    return await file.text();
+  }
 };
 
 
