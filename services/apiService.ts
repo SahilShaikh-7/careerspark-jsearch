@@ -104,7 +104,7 @@ export const findMatchingJobs = async (jobTitles: string[], experienceLevel: str
     const today = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
     const query = jobTitles.join(', ');
 
-    const prompt = `You are a job market analyst specializing in the Indian tech and professional job market. Generate 15 realistic, currently active job listings as of ${today} for roles matching: ${query}.
+    const prompt = `You are a job market analyst specializing in the Indian tech and professional job market. Generate 18 realistic, currently active job listings as of ${today} for roles matching: ${query}.
 
 Experience level of the candidate: ${experienceLevel}
 
@@ -115,7 +115,7 @@ Provide the output as a JSON array ONLY, with each job having these fields:
     "company": "<real Indian company or MNC with India office>",
     "location": "<Indian city>",
     "match_percentage": <70-98>,
-    "apply_url": "<specific career portal URL or job posting URL if possible, otherwise company career page>",
+    "apply_url": "<Genuine Naukri or Glassdoor search URL for this specific role and company>",
     "description": "<2-3 sentence job description>",
     "salary_range": "<salary in INR LPA format, e.g. '8-12 LPA'>",
     "experience_required": "<e.g. '2-4 years'>",
@@ -127,8 +127,11 @@ Rules:
 1. Use REAL Indian companies (TCS, Infosys, Wipro, Razorpay, Flipkart, Zomato, PhonePe, Atlassian India, Google India, Microsoft India, Amazon India, Paytm, CRED, Swiggy, etc.)
 2. Use real Indian cities (Bangalore, Mumbai, Hyderabad, Pune, Delhi NCR, Chennai, Gurugram, Noida)
 3. Salary ranges should be realistic for the Indian market based on experience level
-4. Apply URLs should be as specific as possible (e.g. https://razorpay.com/jobs/ or https://www.infosys.com/careers/open-jobs.html)
-5. Return ONLY the JSON array, no other text`;
+4. IMPORTANT: For "apply_url", construct a GENUINE search link on Naukri or Glassdoor. 
+   - Example for Naukri: https://www.naukri.com/<job-title>-jobs-at-<company>?k=<job-title>&l=<location>
+   - Example for Glassdoor: https://www.glassdoor.co.in/Job/jobs.htm?sc.keyword=<company>%20<job-title>
+5. Mix the sources (some Naukri, some Glassdoor) to provide variety.
+6. Return ONLY the JSON array, no other text`;
 
     const response = await groq.chat.completions.create({
       model: 'llama-3.1-8b-instant',
@@ -153,7 +156,7 @@ Rules:
     // Handle both { jobs: [...] } and direct [...] formats
     const jobsArray = Array.isArray(parsed) ? parsed : (parsed.jobs || parsed.data || []);
 
-    const matchedJobs: Job[] = jobsArray.slice(0, 15).map((job: any): Job => ({
+    const matchedJobs: Job[] = jobsArray.slice(0, 18).map((job: any): Job => ({
       title: job.title || 'N/A',
       company: job.company || 'N/A',
       location: job.location || 'India',
