@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FileText, PlusCircle, Loader, BarChart2, Calendar, ShieldAlert } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FileText, PlusCircle, Loader, BarChart2, Calendar, ShieldAlert, Trash2, AlertTriangle } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { getResumesForUser } from '../services/supabaseService';
+import { getResumesForUser, deleteResume } from '../services/supabaseService';
 import { Resume } from '../types';
 
 const Dashboard: React.FC = () => {
@@ -11,9 +11,11 @@ const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const [resumes, setResumes] = useState<Resume[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (session === undefined) return; // Wait for session to be determined
+        if (session === undefined) return;
 
         if (!session?.user) {
             setIsLoading(false);
@@ -28,6 +30,25 @@ const Dashboard: React.FC = () => {
             .catch(console.error)
             .finally(() => setIsLoading(false));
     }, [user, session]);
+
+    const handleDelete = async (resumeId: string, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (confirmDeleteId !== resumeId) {
+            setConfirmDeleteId(resumeId);
+            setTimeout(() => setConfirmDeleteId(null), 3000); // Reset after 3s
+            return;
+        }
+
+        setDeletingId(resumeId);
+        const success = await deleteResume(resumeId);
+        if (success) {
+            setResumes(prev => prev.filter(r => r.id !== resumeId));
+        }
+        setDeletingId(null);
+        setConfirmDeleteId(null);
+    };
 
     const getScoreColor = (score: number) => {
         if (score > 85) return 'text-green-500';
@@ -53,7 +74,7 @@ const Dashboard: React.FC = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold">My Dashboard</h1>
-                <button onClick={() => navigate('/upload')} className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700">
+                <button onClick={() => navigate('/upload')} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-lg shadow hover:from-purple-700 hover:to-blue-600 transition-all">
                     <PlusCircle className="h-5 w-5" /> Analyze New Resume
                 </button>
             </div>
@@ -62,20 +83,23 @@ const Dashboard: React.FC = () => {
                 <div className="text-center py-20 bg-gray-100 dark:bg-gray-800/50 rounded-2xl">
                     <h3 className="text-2xl font-bold">No Resumes Analyzed Yet</h3>
                     <p className="text-gray-500 dark:text-gray-400 mt-2 mb-6">Upload your first resume to get started.</p>
-                    <button onClick={() => navigate('/upload')} className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-lg hover:bg-purple-700">
+                    <button onClick={() => navigate('/upload')} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white font-semibold rounded-lg shadow-lg hover:from-purple-700 hover:to-blue-600 transition-all">
                         Upload Resume
                     </button>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <AnimatePresence>
                     {resumes.map((resume, index) => (
                         <motion.div 
                             key={resume.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ delay: index * 0.1 }}
+                            layout
                         >
-                            <Link to={`/results/${resume.id}`} className="block bg-white dark:bg-dark-card p-6 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all border border-gray-200 dark:border-gray-800 h-full">
+                            <Link to={`/results/${resume.id}`} className="block bg-white dark:bg-dark-card p-6 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all border border-gray-200 dark:border-gray-800 h-full relative group">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
                                         <FileText className="h-6 w-6 text-purple-600 dark:text-purple-400" />
@@ -92,9 +116,30 @@ const Dashboard: React.FC = () => {
                                         <span>Analyzed: {new Date(resume.created_at).toLocaleDateString()}</span>
                                     </div>
                                 </div>
+                                
+                                {/* Delete Button */}
+                                <button
+                                    onClick={(e) => handleDelete(resume.id, e)}
+                                    disabled={deletingId === resume.id}
+                                    className={`absolute top-3 right-3 p-2 rounded-lg transition-all ${
+                                        confirmDeleteId === resume.id
+                                            ? 'bg-red-500 text-white'
+                                            : 'opacity-0 group-hover:opacity-100 bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/30'
+                                    }`}
+                                    title={confirmDeleteId === resume.id ? 'Click again to confirm' : 'Delete resume'}
+                                >
+                                    {deletingId === resume.id ? (
+                                        <Loader className="h-4 w-4 animate-spin" />
+                                    ) : confirmDeleteId === resume.id ? (
+                                        <AlertTriangle className="h-4 w-4" />
+                                    ) : (
+                                        <Trash2 className="h-4 w-4" />
+                                    )}
+                                </button>
                             </Link>
                         </motion.div>
                     ))}
+                    </AnimatePresence>
                 </div>
             )}
         </motion.div>

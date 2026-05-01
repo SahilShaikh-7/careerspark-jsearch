@@ -1,0 +1,21 @@
+{
+  "name": "CareerSpark AI",
+  "short_name": "CareerSpark",
+  "description": "AI-powered resume analysis and Indian job matching platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a092d",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "business", "education"],
+  "lang": "en",
+  "scope": "/"
+}

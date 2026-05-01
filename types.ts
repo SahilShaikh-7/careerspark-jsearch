@@ -2,10 +2,15 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export type User = SupabaseUser;
 
+export type SubscriptionTier = 'standard' | 'pro';
+
 export interface Profile {
   id: string;
   full_name: string;
   updated_at?: string;
+  subscription_tier: SubscriptionTier;
+  subscription_expires_at?: string;
+  is_admin: boolean;
 }
 
 export interface Skill {
@@ -45,4 +50,12 @@ export interface Resume {
   feedback: { suggestion: string }[];
   skills: Skill[];
   matched_jobs: Job[];
+  cover_letter?: string;
+}
+
+export interface PaymentOrder {
+  id: string;
+  amount: number;
+  currency: string;
+  receipt: string;
 }

@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
-import { FileUp, Loader, AlertTriangle, CheckCircle } from 'lucide-react';
+import { FileUp, Loader, AlertTriangle, CheckCircle, Crown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
-import { analyzeResume, findMatchingJobs, isGeminiConfigured } from '../services/apiService';
+import { analyzeResume, findMatchingJobs, isGroqConfigured } from '../services/apiService';
 import { saveResumeData, uploadResumeFile } from '../services/supabaseService';
 
 const Upload: React.FC = () => {
@@ -12,7 +12,7 @@ const Upload: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [progress, setProgress] = useState({ stage: '', percentage: 0 });
     const [error, setError] = useState<string | null>(null);
-    const { user, openAuthModal } = useAppContext();
+    const { user, openAuthModal, isPro } = useAppContext();
     const navigate = useNavigate();
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -29,18 +29,18 @@ const Upload: React.FC = () => {
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
         },
         multiple: false,
-        disabled: !isGeminiConfigured,
+        disabled: !isGroqConfigured,
     });
 
     const baseStyle = 'border-2 border-dashed rounded-2xl p-12 text-center transition-colors duration-300';
     const activeStyle = 'border-purple-500 bg-purple-50 dark:bg-purple-900/20';
     const disabledStyle = 'bg-gray-100 dark:bg-gray-800/50 cursor-not-allowed opacity-60';
     
-    const style = useMemo(() => `${baseStyle} ${isDragActive ? activeStyle : 'border-gray-300 dark:border-gray-700'} ${!isGeminiConfigured ? disabledStyle : 'cursor-pointer'}`, [isDragActive, isGeminiConfigured]);
+    const style = useMemo(() => `${baseStyle} ${isDragActive ? activeStyle : 'border-gray-300 dark:border-gray-700'} ${!isGroqConfigured ? disabledStyle : 'cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-900/10'}`, [isDragActive, isGroqConfigured]);
 
     const handleAnalysis = async () => {
-        if (!isGeminiConfigured) {
-            setError("AI features are disabled. Please configure your Google Gemini API key.");
+        if (!isGroqConfigured) {
+            setError("AI features are disabled. Please configure your Groq API key.");
             return;
         }
         if (!user) {
@@ -59,12 +59,12 @@ const Upload: React.FC = () => {
             const fileUrl = await uploadResumeFile(file, user.id);
             if (!fileUrl) throw new Error("Failed to upload your resume file.");
 
-            setProgress({ stage: 'Analyzing resume...', percentage: 25 });
+            setProgress({ stage: 'AI is analyzing your resume...', percentage: 25 });
             const { data: analysis, error: analysisError } = await analyzeResume(file);
             if (analysisError || !analysis) throw new Error(analysisError || "Failed to analyze resume.");
 
-            setProgress({ stage: 'Finding job matches...', percentage: 75 });
-            const matchedJobs = await findMatchingJobs(analysis.job_titles);
+            setProgress({ stage: 'Finding job matches in India...', percentage: 60 });
+            const matchedJobs = await findMatchingJobs(analysis.job_titles, analysis.experience_level);
             
             setProgress({ stage: 'Saving results...', percentage: 90 });
             const resumePayload = {
@@ -98,14 +98,28 @@ const Upload: React.FC = () => {
             <p className="text-lg text-gray-600 dark:text-gray-400 text-center mt-2">
                 Let our AI analyze your resume and find the best job opportunities for you.
             </p>
+
+            {!isPro && (
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-3"
+                >
+                    <Crown className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                    <div className="text-sm">
+                        <p className="font-medium text-amber-800 dark:text-amber-200">Standard Plan — Basic analysis only</p>
+                        <p className="text-amber-600 dark:text-amber-400">Upgrade to Pro for cover letter generation, direct job apply, and more.</p>
+                    </div>
+                </motion.div>
+            )}
             
-            {!isGeminiConfigured && (
+            {!isGroqConfigured && (
                 <div className="mt-8 p-4 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-600 rounded-lg flex items-center gap-4">
                     <AlertTriangle className="h-6 w-6 text-red-500" />
                     <div>
                         <h3 className="font-bold text-red-800 dark:text-red-200">AI Features Disabled</h3>
                         <p className="text-sm text-red-700 dark:text-red-300">
-                            The Google Gemini API key is not configured. Please set the <code>API_KEY</code> environment variable to enable resume analysis.
+                            The Groq API key is not configured. Please set <code>VITE_GROQ_API_KEY</code> in your .env file.
                         </p>
                     </div>
                 </div>
@@ -117,10 +131,10 @@ const Upload: React.FC = () => {
                         <input {...getInputProps()} />
                         <FileUp className="h-12 w-12 mx-auto text-gray-400" />
                         {isDragActive ? (
-                            <p className="mt-4 text-purple-600">Drop the file here ...</p>
+                            <p className="mt-4 text-purple-600 font-medium">Drop the file here ...</p>
                         ) : (
                             <p className="mt-4 text-gray-500">
-                                {!isGeminiConfigured 
+                                {!isGroqConfigured 
                                     ? 'AI analysis is disabled. Please configure the API key.' 
                                     : "Drag 'n' drop a PDF or DOCX file here, or click to select a file."
                                 }
@@ -136,10 +150,11 @@ const Upload: React.FC = () => {
                             className="text-center mt-4"
                         >
                             <p className="font-semibold">{file.name}</p>
+                            <p className="text-sm text-gray-500 mt-1">{(file.size / 1024).toFixed(1)} KB</p>
                             <button 
                                 onClick={handleAnalysis} 
-                                disabled={!isGeminiConfigured}
-                                className="mt-4 px-8 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-lg hover:bg-purple-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                disabled={!isGroqConfigured}
+                                className="mt-4 px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white font-semibold rounded-lg shadow-lg hover:from-purple-700 hover:to-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
                                 Start Analysis
                             </button>
                          </motion.div>
@@ -151,14 +166,14 @@ const Upload: React.FC = () => {
                         <Loader className="h-10 w-10 mx-auto animate-spin text-purple-500" />
                         <p className="mt-4 font-semibold text-lg">{progress.stage}</p>
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
-                            <div className="bg-purple-600 h-2.5 rounded-full transition-all" style={{ width: `${progress.percentage}%` }}></div>
+                            <div className="bg-gradient-to-r from-purple-600 to-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress.percentage}%` }}></div>
                         </div>
                         {progress.percentage === 100 && <CheckCircle className="h-10 w-10 mx-auto text-green-500 mt-4" />}
                     </div>
                 )}
 
                 {error && (
-                    <div className="mt-6 flex items-center justify-center gap-2 text-red-500">
+                    <div className="mt-6 flex items-center justify-center gap-2 text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
                         <AlertTriangle className="h-5 w-5" />
                         <p>{error}</p>
                     </div>

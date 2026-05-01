@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
-import { Profile } from '../types';
-import { getProfile, updateProfile as saveProfile } from './../services/supabaseService';
+import { Profile, SubscriptionTier } from '../types';
+import { getProfile, updateProfile as saveProfile, signInWithGoogle as googleSignIn } from './../services/supabaseService';
 
 interface AppContextType {
   session: Session | null;
@@ -15,8 +15,12 @@ interface AppContextType {
   closeAuthModal: () => void;
   signInWithEmail: (email: string, password: string) => Promise<any>;
   signUpWithEmail: (fullName: string, email: string, password: string) => Promise<any>;
+  signInWithGoogle: () => Promise<any>;
   signOut: () => Promise<void>;
   updateProfile: (updates: { full_name: string }) => Promise<void>;
+  isPro: boolean;
+  isAdmin: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -27,6 +31,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const isPro = profile?.subscription_tier === 'pro' || profile?.is_admin === true;
+  const isAdmin = profile?.is_admin === true;
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
@@ -42,7 +49,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        getProfile(session.user.id).then(setProfile);
+        getProfile(session.user.id, session.user.email).then(setProfile);
       }
     });
 
@@ -50,7 +57,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        getProfile(session.user.id).then(setProfile);
+        getProfile(session.user.id, session.user.email).then(setProfile);
       } else {
         setProfile(null);
       }
@@ -84,15 +91,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
   };
 
+  const signInWithGoogle = async () => {
+    return googleSignIn();
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
+    setProfile(null);
   };
   
   const updateProfile = async (updates: { full_name: string }) => {
     if (user) {
         await saveProfile(user.id, updates);
-        const updatedProfile = await getProfile(user.id);
+        const updatedProfile = await getProfile(user.id, user.email);
         setProfile(updatedProfile);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      const updatedProfile = await getProfile(user.id, user.email);
+      setProfile(updatedProfile);
     }
   };
 
@@ -107,8 +126,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     closeAuthModal: () => setIsAuthModalOpen(false),
     signInWithEmail,
     signUpWithEmail,
+    signInWithGoogle,
     signOut,
     updateProfile,
+    isPro,
+    isAdmin,
+    refreshProfile,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
