@@ -104,48 +104,52 @@ export const findMatchingJobs = async (jobTitles: string[], experienceLevel: str
     const today = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
     const query = jobTitles.join(', ');
 
-    const prompt = `You are a job market analyst specializing in the Indian tech and professional job market. Generate 18 realistic, currently active job listings as of ${today} for roles matching: ${query}.
+    const prompt = `You are a premier job market analyst for the Indian tech ecosystem. Generate 18 highly realistic, currently active job listings as of ${today} for a candidate with these job titles: ${query}.
 
-Experience level of the candidate: ${experienceLevel}
+Experience Level: ${experienceLevel}
 
-Provide the output as a JSON array ONLY, with each job having these fields:
+Provide the output as a JSON array ONLY. Each job must include:
 [
   {
     "title": "<exact job title>",
-    "company": "<real Indian company or MNC with India office>",
+    "company": "<specific real-world company>",
     "location": "<Indian city>",
-    "match_percentage": <70-98>,
-    "apply_url": "<Genuine Naukri,linkedin or Glassdoor also careers page of companysearch URL for this specific role and company>",
-    "description": "<2-3 sentence job description>",
-    "salary_range": "<salary in INR LPA format, e.g. '8-12 LPA'>",
-    "experience_required": "<e.g. '0-4 years'>",
-    "job_type": "<Full-time|Remote|Hybrid|Contract>"
+    "match_percentage": <75-99>,
+    "apply_url": "<Genuine search URL on LinkedIn, Naukri, or Glassdoor>",
+    "description": "<2-3 sentence engaging job description>",
+    "salary_range": "<Realistic INR LPA, e.g., '15-25 LPA'>",
+    "experience_required": "<e.g., '1-3 years'>",
+    "job_type": "<Full-time|Remote|Hybrid>"
   }
 ]
 
-Rules:
-1. Use REAL Indian companies (TCS, Infosys, Wipro, Razorpay, Flipkart, Zomato, PhonePe, Atlassian India, Google India, Microsoft India, Amazon India, Paytm, CRED, Swiggy, etc.)
-2. Use real Indian cities (Bangalore, Mumbai, Hyderabad, Pune, Delhi NCR, Chennai, Gurugram, Noida)
-3. Salary ranges should be realistic for the Indian market based on experience level
-4. IMPORTANT: For "apply_url", construct a GENUINE search link on Naukri, linkedin or Glassdoor. 
-   - Example for Naukri: https://www.naukri.com/<job-title>-jobs-at-<company>?k=<job-title>&l=<location>
-   - Example for Glassdoor: https://www.glassdoor.co.in/Job/jobs.htm?sc.keyword=<company>%20<job-title>
-5. Mix the sources (some Naukri, some Glassdoor) to provide variety.
-6. Return ONLY the JSON array, no other text`;
+Rules for Variety and Quality:
+1. COMPANY MIX: Include a balanced mix of:
+   - BIG TECH/MNCs: Google India, Microsoft, Amazon, Adobe, Atlassian, Oracle.
+   - INDIAN UNICORNS: Flipkart, Razorpay, Zomato, Swiggy, Ola, CRED, Pine Labs, Groww, Zerodha.
+   - RAPID GROWTH STARTUPS: Zepto, Blinkit, Slice, Jupiter, Postman, BrowserStack, Freshworks, Lenskart, Nykaa.
+   - SERVICES/CONSULTING: TCS, Infosys, Wipro, Accenture India, Deloitte India.
+2. LOCATION: Use tech hubs like Bangalore, Hyderabad, Pune, Gurgaon, Mumbai, Noida, or 'Remote (India)'.
+3. APPLY URLS (Crucial): Construct genuine search links:
+   - LinkedIn: https://www.linkedin.com/jobs/search/?keywords=<company>%20<job-title>&location=India
+   - Naukri: https://www.naukri.com/<job-title>-jobs-at-<company>?k=<job-title>&l=india
+   - Glassdoor: https://www.glassdoor.co.in/Job/jobs.htm?sc.keyword=<company>%20<job-title>
+4. DIVERSIFY: Ensure no more than 2 jobs are from the same company.
+5. Return ONLY the JSON array, no preamble or markdown.`;
 
     const response = await groq.chat.completions.create({
       model: 'llama-3.1-8b-instant',
       messages: [
         {
           role: 'system',
-          content: 'You are a job market expert. Respond with a valid JSON array only. No markdown, no code blocks.'
+          content: 'You are an elite talent acquisition expert. Respond with raw JSON arrays only.'
         },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      temperature: 0.7,
+      temperature: 0.8,
       max_tokens: 4096,
       response_format: { type: 'json_object' },
     });
