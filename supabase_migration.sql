@@ -6,6 +6,10 @@ ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'standard',
 ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMPTZ,
 ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
 
+-- 1b. Update Resumes Table
+ALTER TABLE public.resumes
+ADD COLUMN IF NOT EXISTS cover_letter TEXT;
+
 -- 2. Create Payments Table
 CREATE TABLE IF NOT EXISTS public.payments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
