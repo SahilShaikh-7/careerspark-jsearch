@@ -2,9 +2,10 @@
 import { Resume } from '../types';
 
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Configure the worker for pdfjs-dist using a CDN to avoid Vite build issues
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Configure the worker for pdfjs-dist using the local Vite URL
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export const extractTextFromFile = async (file: File): Promise<string> => {
   try {

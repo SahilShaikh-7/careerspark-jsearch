@@ -28,7 +28,7 @@ export const analyzeResume = async (file: File) => {
     const prompt = `You are an expert resume analyst and career advisor. Analyze the following resume text extracted from a ${file.type} file named "${file.name}".
 
 The resume text is:
-${resumeText.substring(0, 15000)}
+${resumeText.substring(0, 12000)}
 
 Based on whatever text you can extract or infer from this resume data, provide your analysis in the following JSON format ONLY (no other text):
 {
@@ -62,7 +62,7 @@ Rules:
         },
       ],
       temperature: 0.3,
-      max_tokens: 2048,
+      max_tokens: 4096,
       response_format: { type: 'json_object' },
     });
 
