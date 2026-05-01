@@ -2,7 +2,7 @@
 import { Resume } from '../types';
 
 import * as pdfjsLib from 'pdfjs-dist';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
 // Configure the worker for pdfjs-dist using the local Vite URL
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
